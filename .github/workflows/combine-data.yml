@@ -1,0 +1,39 @@
+name: Combine Federal Data
+on: 
+  schedule:
+    - cron: '20 * * * *'
+  workflow_dispatch:
+jobs:
+  combine-data:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo 'All credit to the COVID Tracking Project'
+      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Use Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install wheel
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Make sure data dir exists
+        run: mkdir -p data
+      - name: Run combiner
+        run: python combine-data.py
+      - name: Commit
+        if: github.ref == 'refs/heads/master'
+        uses: EndBug/add-and-commit@v7
+        with:
+          message: Updating combined federal data
+          add: 'data'
+          default_author: github_actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
