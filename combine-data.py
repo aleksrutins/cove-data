@@ -133,7 +133,11 @@ if COMBINE_NY_NYC:
 combined = pd.merge(left=testing, right=hospitalization, on=['state', 'date'], how='outer')
 
 case_death['date'] = pd.to_datetime(case_death['date'], format='%m/%d/%Y')
-combined['date'] = pd.to_datetime(combined['date'], format='%Y-%m-%d')
+
+try:
+    combined['date'] = pd.to_datetime(combined['date'], format='%Y-%m-%d')
+except e:
+    combined['date'] = pd.to_datetime(combined['date'], format='%Y/%m/%d')
 
 combined = combined.merge(case_death, on=['state', 'date'], how='outer')
 
